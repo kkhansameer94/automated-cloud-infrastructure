@@ -1,0 +1,78 @@
+---
+- name: Automated Cloud Server Provisioning & Configuration
+  hosts: webservers
+  become: yes
+  tasks:
+    - name: Update apt package repository cache
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Install baseline packages (Nginx, curl, ufw, htop)
+      apt:
+        name:
+          - nginx
+          - curl
+          - ufw
+          - htop
+        state: present
+
+    - name: Deploy custom web application landing page
+      copy:
+        dest: /var/www/html/index.html
+        owner: www-data
+        group: www-data
+        mode: '0644'
+        content: |
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <title>DevOps Infrastructure Automation</title>
+            <style>
+              body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0f172a; color: #f8fafc; text-align: center; padding: 50px; }
+              .card { background: #1e293b; max-width: 650px; margin: auto; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5); }
+              h1 { color: #38bdf8; }
+              .badge { background: #0284c7; color: white; padding: 6px 14px; border-radius: 20px; font-size: 14px; }
+              .status { color: #4ade80; font-weight: bold; }
+              ul { text-align: left; background: #0f172a; padding: 20px 40px; border-radius: 8px; }
+              li { margin: 8px 0; }
+            </style>
+          </head>
+          <body>
+            <div class="card">
+              <span class="badge">Terraform + Ansible Automated</span>
+              <h1>Cloud Infrastructure Live</h1>
+              <p>Status: <span class="status">HEALTHY (200 OK)</span></p>
+              <hr style="border-color: #334155; margin: 20px 0;">
+              <ul>
+                <li><strong>Provisioning:</strong> Terraform (AWS VPC, Subnet, IGW, Route Table, SG)</li>
+                <li><strong>Configuration:</strong> Ansible Playbook Automation</li>
+                <li><strong>Server:</strong> Ubuntu 22.04 LTS (t3.micro)</li>
+                <li><strong>Region:</strong> AWS ap-south-1 (Mumbai)</li>
+              </ul>
+            </div>
+          </body>
+          </html>
+
+    - name: Ensure Nginx systemd service is active and enabled on boot
+      systemd:
+        name: nginx
+        state: started
+        enabled: yes
+
+    - name: Configure UFW - Allow OpenSSH (Port 22)
+      ufw:
+        rule: allow
+        port: '22'
+        proto: tcp
+
+    - name: Configure UFW - Allow Nginx HTTP (Port 80)
+      ufw:
+        rule: allow
+        port: '80'
+        proto: tcp
+
+    - name: Enable UFW firewall
+      ufw:
+        state: enabled
+        default: deny
